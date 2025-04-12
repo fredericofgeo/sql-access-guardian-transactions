@@ -1,13 +1,24 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { MainLayout } from '@/components/layout/MainLayout';
+import Dashboard from './Dashboard';
+import Transactions from './Transactions';
+import Users from './Users';
+import NotFound from './NotFound';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
+      <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
+      <Route path="/transactions" element={<MainLayout><Transactions /></MainLayout>} />
+      {/* Rotas para serem implementadas posteriormente */}
+      <Route path="/permissions" element={<MainLayout><div className="p-4">Página de Permissões em Desenvolvimento</div></MainLayout>} />
+      <Route path="/servers" element={<MainLayout><div className="p-4">Página de Servidores em Desenvolvimento</div></MainLayout>} />
+      <Route path="/databases" element={<MainLayout><div className="p-4">Página de Bancos de Dados em Desenvolvimento</div></MainLayout>} />
+      <Route path="/settings" element={<MainLayout><div className="p-4">Página de Configurações em Desenvolvimento</div></MainLayout>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
