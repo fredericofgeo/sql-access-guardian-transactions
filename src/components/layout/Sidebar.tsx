@@ -32,8 +32,9 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground border-r border-border flex flex-col h-screen fixed z-40 transition-all duration-300",
-        isOpen ? "w-64" : "w-20"
+        "bg-card text-card-foreground border-r border-border h-screen transition-all duration-300 z-40",
+        isOpen ? "w-64" : "w-20",
+        "md:fixed md:left-0"
       )}
     >
       <div className="p-4 border-b border-border flex items-center justify-between">
