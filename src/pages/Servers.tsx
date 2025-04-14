@@ -451,7 +451,6 @@ const ServersPage = () => {
                         <Progress 
                           value={server.cpuUsage} 
                           className={`h-2 ${server.cpuUsage > 80 ? "bg-red-200" : ""}`}
-                          indicatorColor={server.cpuUsage > 80 ? "bg-red-500" : undefined}
                         />
                       </div>
                       
@@ -465,7 +464,6 @@ const ServersPage = () => {
                         <Progress 
                           value={server.memoryUsage}
                           className={`h-2 ${server.memoryUsage > 80 ? "bg-red-200" : ""}`}
-                          indicatorColor={server.memoryUsage > 80 ? "bg-red-500" : undefined}
                         />
                       </div>
                       
@@ -479,7 +477,6 @@ const ServersPage = () => {
                         <Progress 
                           value={server.diskUsage}
                           className={`h-2 ${server.diskUsage > 80 ? "bg-red-200" : ""}`}
-                          indicatorColor={server.diskUsage > 80 ? "bg-red-500" : undefined}
                         />
                       </div>
                     </div>
@@ -681,7 +678,7 @@ const ServersPage = () => {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </Dialog>
+      </AlertDialog>
     </div>
   );
 };
