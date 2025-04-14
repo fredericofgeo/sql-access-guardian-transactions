@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -26,8 +27,4 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
 }

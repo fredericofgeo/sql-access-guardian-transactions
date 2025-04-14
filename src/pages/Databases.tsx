@@ -55,6 +55,17 @@ import {
   Trash,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Database driver types
+type DatabaseDriver = "sqlserver" | "postgresql" | "oracle";
+
+// Default ports for different database types
+const defaultPorts: Record<DatabaseDriver, number> = {
+  sqlserver: 1433,
+  postgresql: 5432,
+  oracle: 1521
+};
 
 // Mock data for databases
 const mockDatabases = [
@@ -66,6 +77,7 @@ const mockDatabases = [
     version: "SQL Server 2019",
     lastSync: "2025-04-14T08:30:00",
     connections: 24,
+    driver: "sqlserver"
   },
   {
     id: "2",
@@ -75,24 +87,37 @@ const mockDatabases = [
     version: "SQL Server 2022",
     lastSync: "2025-04-14T10:15:00",
     connections: 7,
+    driver: "sqlserver"
   },
   {
     id: "3",
+    name: "Analytics PostgreSQL",
+    server: "pg-analytics.company.com",
+    status: "online",
+    version: "PostgreSQL 15",
+    lastSync: "2025-04-14T09:30:00",
+    connections: 12,
+    driver: "postgresql"
+  },
+  {
+    id: "4", 
+    name: "Legacy Oracle",
+    server: "oracle-legacy.company.com",
+    status: "maintenance",
+    version: "Oracle 19c",
+    lastSync: "2025-04-13T14:45:00",
+    connections: 3,
+    driver: "oracle"
+  },
+  {
+    id: "5",
     name: "Test DB",
     server: "sql-test-01.company.com",
     status: "offline",
     version: "SQL Server 2019",
     lastSync: "2025-04-12T14:22:00",
     connections: 0,
-  },
-  {
-    id: "4",
-    name: "Legacy DB",
-    server: "sql-legacy.company.com",
-    status: "maintenance",
-    version: "SQL Server 2016",
-    lastSync: "2025-04-10T09:45:00",
-    connections: 1,
+    driver: "sqlserver"
   },
 ];
 
@@ -122,19 +147,60 @@ const mockRecentQueries = [
     timestamp: "2025-04-14T10:15:00",
     duration: 18,
   },
+  {
+    id: "q4",
+    query: "SELECT product_name, SUM(sales) FROM sales GROUP BY product_name",
+    database: "Analytics PostgreSQL",
+    user: "analyst@empresa.com",
+    timestamp: "2025-04-14T11:05:00",
+    duration: 342,
+  },
+  {
+    id: "q5",
+    query: "SELECT * FROM employees WHERE department_id = 10",
+    database: "Legacy Oracle",
+    user: "legacy@empresa.com",
+    timestamp: "2025-04-14T09:15:00",
+    duration: 156,
+  },
 ];
+
+// Helper function to get database icon by driver type
+const getDatabaseIcon = (driver: string) => {
+  switch (driver) {
+    case "postgresql":
+      return <Database className="h-4 w-4 text-blue-500" />;
+    case "oracle":
+      return <Database className="h-4 w-4 text-red-500" />;
+    case "sqlserver":
+    default:
+      return <Database className="h-4 w-4 text-primary" />;
+  }
+};
+
+// Helper function to get version display name
+const getVersionDisplay = (version: string) => {
+  return version;
+};
 
 const DatabasesPage = () => {
   const [isNewDbDialogOpen, setIsNewDbDialogOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedDb, setSelectedDb] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [driverType, setDriverType] = useState<DatabaseDriver>("sqlserver");
+  const [port, setPort] = useState<number>(defaultPorts.sqlserver);
   const { toast } = useToast();
 
   const filteredDatabases = mockDatabases.filter(db => 
     db.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     db.server.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDriverChange = (value: DatabaseDriver) => {
+    setDriverType(value);
+    setPort(defaultPorts[value]);
+  };
 
   const handleAddDatabase = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,9 +221,10 @@ const DatabasesPage = () => {
   };
 
   const handleTest = (dbId: string) => {
+    const db = mockDatabases.find(db => db.id === dbId);
     toast({
       title: "Connection Test",
-      description: `Successfully connected to ${mockDatabases.find(db => db.id === dbId)?.name}`,
+      description: `Successfully connected to ${db?.name} (${db?.driver.toUpperCase()})`,
     });
   };
 
@@ -203,9 +270,12 @@ const DatabasesPage = () => {
               <Card key={db.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{db.name}</CardTitle>
-                      <CardDescription>{db.server}</CardDescription>
+                    <div className="flex items-center gap-2">
+                      {getDatabaseIcon(db.driver)}
+                      <div>
+                        <CardTitle className="text-lg">{db.name}</CardTitle>
+                        <CardDescription>{db.server}</CardDescription>
+                      </div>
                     </div>
                     <Badge 
                       variant={
@@ -228,8 +298,16 @@ const DatabasesPage = () => {
                 <CardContent className="pb-2">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tipo:</span>
+                      <span>
+                        {db.driver === "sqlserver" ? "SQL Server" : 
+                         db.driver === "postgresql" ? "PostgreSQL" : 
+                         db.driver === "oracle" ? "Oracle" : "Desconhecido"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-muted-foreground">Versão:</span>
-                      <span>{db.version}</span>
+                      <span>{getVersionDisplay(db.version)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Última Sincronização:</span>
@@ -345,7 +423,7 @@ const DatabasesPage = () => {
             <DialogHeader>
               <DialogTitle>Adicionar Banco de Dados</DialogTitle>
               <DialogDescription>
-                Configure a conexão com um novo banco de dados SQL Server.
+                Configure a conexão com um novo banco de dados.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -361,12 +439,38 @@ const DatabasesPage = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="driver" className="text-right">
+                  Tipo
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={driverType}
+                    onValueChange={(value) => handleDriverChange(value as DatabaseDriver)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de banco" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sqlserver">SQL Server</SelectItem>
+                      <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                      <SelectItem value="oracle">Oracle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="server" className="text-right">
                   Servidor
                 </Label>
                 <Input
                   id="server"
-                  placeholder="Ex: sql-server.empresa.com"
+                  placeholder={
+                    driverType === "sqlserver" 
+                      ? "Ex: sql-server.empresa.com" 
+                      : driverType === "postgresql"
+                        ? "Ex: pg-server.empresa.com"
+                        : "Ex: oracle-server.empresa.com"
+                  }
                   className="col-span-3"
                   required
                 />
@@ -377,10 +481,11 @@ const DatabasesPage = () => {
                 </Label>
                 <Input
                   id="port"
-                  placeholder="1433"
+                  placeholder={port.toString()}
                   className="col-span-3"
                   type="number"
-                  defaultValue={1433}
+                  value={port}
+                  onChange={(e) => setPort(parseInt(e.target.value) || defaultPorts[driverType])}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -389,7 +494,13 @@ const DatabasesPage = () => {
                 </Label>
                 <Input
                   id="username"
-                  placeholder="Ex: sa"
+                  placeholder={
+                    driverType === "sqlserver" 
+                      ? "Ex: sa" 
+                      : driverType === "postgresql"
+                        ? "Ex: postgres"
+                        : "Ex: system"
+                  }
                   className="col-span-3"
                   required
                 />
@@ -411,14 +522,39 @@ const DatabasesPage = () => {
                 </Label>
                 <Input
                   id="database"
-                  placeholder="master"
+                  placeholder={
+                    driverType === "sqlserver" 
+                      ? "master" 
+                      : driverType === "postgresql"
+                        ? "postgres"
+                        : "ORCL"
+                  }
                   className="col-span-3"
-                  defaultValue="master"
+                  defaultValue={
+                    driverType === "sqlserver" 
+                      ? "master" 
+                      : driverType === "postgresql"
+                        ? "postgres"
+                        : "ORCL"
+                  }
                 />
               </div>
+              {driverType === "oracle" && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="sid" className="text-right">
+                    SID/Service
+                  </Label>
+                  <Input
+                    id="sid"
+                    placeholder="Ex: ORCL"
+                    className="col-span-3"
+                    defaultValue="ORCL"
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="col-start-2 col-span-3 flex items-center space-x-2">
-                  <Checkbox id="validate" />
+                  <Checkbox id="validate" defaultChecked />
                   <Label htmlFor="validate" className="text-sm font-normal">
                     Validar conexão antes de salvar
                   </Label>

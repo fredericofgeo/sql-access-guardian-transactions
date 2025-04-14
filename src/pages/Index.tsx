@@ -7,6 +7,8 @@ import Users from './Users';
 import Databases from './Databases';
 import Settings from './Settings';
 import NotFound from './NotFound';
+import Permissions from './Permissions';
+import Servers from './Servers';
 
 const Index = () => {
   return (
@@ -16,9 +18,8 @@ const Index = () => {
       <Route path="/transactions" element={<MainLayout><Transactions /></MainLayout>} />
       <Route path="/databases" element={<MainLayout><Databases /></MainLayout>} />
       <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
-      {/* Rotas para serem implementadas posteriormente */}
-      <Route path="/permissions" element={<MainLayout><div className="p-4">Página de Permissões em Desenvolvimento</div></MainLayout>} />
-      <Route path="/servers" element={<MainLayout><div className="p-4">Página de Servidores em Desenvolvimento</div></MainLayout>} />
+      <Route path="/permissions" element={<MainLayout><Permissions /></MainLayout>} />
+      <Route path="/servers" element={<MainLayout><Servers /></MainLayout>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
