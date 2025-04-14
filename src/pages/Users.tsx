@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,66 +18,35 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-
-// Dados de exemplo
-const users = [
-  { 
-    id: 1, 
-    name: "Ana Silva", 
-    username: "ana.silva", 
-    email: "ana.silva@empresa.com", 
-    role: "DBA", 
-    status: "active", 
-    lastLogin: "12/04/2025 08:32" 
-  },
-  { 
-    id: 2, 
-    name: "Carlos Santos", 
-    username: "carlos.santos", 
-    email: "carlos.santos@empresa.com", 
-    role: "Desenvolvedor", 
-    status: "active", 
-    lastLogin: "12/04/2025 09:15" 
-  },
-  { 
-    id: 3, 
-    name: "Patrícia Lima", 
-    username: "patricia.lima", 
-    email: "patricia.lima@empresa.com", 
-    role: "Analista", 
-    status: "active", 
-    lastLogin: "11/04/2025 17:42" 
-  },
-  { 
-    id: 4, 
-    name: "Marcos Oliveira", 
-    username: "marcos.oliveira", 
-    email: "marcos.oliveira@empresa.com", 
-    role: "Admin", 
-    status: "active", 
-    lastLogin: "11/04/2025 16:05" 
-  },
-  { 
-    id: 5, 
-    name: "Julia Costa", 
-    username: "julia.costa", 
-    email: "julia.costa@empresa.com", 
-    role: "Gerente", 
-    status: "inactive", 
-    lastLogin: "05/04/2025 11:23" 
-  },
-  { 
-    id: 6, 
-    name: "Roberto Almeida", 
-    username: "roberto.almeida", 
-    email: "roberto.almeida@empresa.com", 
-    role: "Suporte", 
-    status: "blocked", 
-    lastLogin: "01/04/2025 09:30" 
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Users() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+
+    if (error) {
+      console.error("Error fetching users:", error);
+      return;
+    }
+
+    setUsers(data || []);
+  };
+
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -101,7 +71,12 @@ export default function Users() {
           <div className="flex justify-between items-center mb-6">
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar usuários..." className="pl-9" />
+              <Input 
+                placeholder="Buscar usuários..." 
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <div className="hidden md:flex gap-2">
               <Button variant="outline">Exportar</Button>
@@ -123,7 +98,7 @@ export default function Users() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.username}</TableCell>
@@ -148,7 +123,7 @@ export default function Users() {
                           : "Bloqueado"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{user.lastLogin}</TableCell>
+                    <TableCell>{new Date(user.last_login).toLocaleString('pt-BR')}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -177,7 +152,7 @@ export default function Users() {
 
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Mostrando 6 de 24 usuários
+              Mostrando {filteredUsers.length} de {filteredUsers.length} usuários
             </p>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" disabled>
